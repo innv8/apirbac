@@ -2,6 +2,7 @@ package apirbac
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 )
 
@@ -108,7 +109,9 @@ func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
 
 func getResourceFromValue(val string, role Role) (Grant, error) {
 	for _, g := range role.Grants {
-		if g.Resource.Rgx.MatchString(val) {
+		match := g.Resource.Rgx.MatchString(val)
+		log.Println("---------------------", match)
+		if match {
 			return g, nil
 		}
 	}
