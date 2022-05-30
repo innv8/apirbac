@@ -13,11 +13,29 @@ func (r *RBAC) AddActions(actions ...string) {
 	r.Configs.Actions = append(r.Configs.Actions, actions...)
 }
 
-func (r *RBAC) AddResources(resources ...string) {
-	r.Configs.Resources = append(r.Configs.Resources, resources...)
+func (r *RBAC) AddResource(resourceID, regex string) {
+	resource := Resource{
+		ID:    resourceID,
+		Regex: regex,
+		Rgx:   regexp.MustCompile(regex),
+	}
+	r.Configs.Resources = append(r.Configs.Resources, resource)
 }
 
-func (r *RBAC) AddRole(roleID, resource string, permissions ...string) error {
+func (r *RBAC) GetResource(resourceID string) (*Resource, error) {
+	for _, resource := range r.Configs.Resources {
+		if resource.ID == resourceID {
+			return &resource, nil
+		}
+	}
+	return nil, fmt.Errorf("resource not found")
+}
+func (r *RBAC) AddRole(roleID, resourceID string, permissions ...string) error {
+	resource, err := r.GetResource(resourceID)
+	if err != nil {
+		return err
+	}
+
 	role, err := r.GetRole(roleID)
 	if err != nil {
 		// here the role does not exist, create it
@@ -25,7 +43,7 @@ func (r *RBAC) AddRole(roleID, resource string, permissions ...string) error {
 			ID: roleID,
 			Grants: []Grant{
 				{
-					Resource:    resource,
+					Resource:    *resource,
 					Permissions: permissions,
 				},
 			},
@@ -34,7 +52,7 @@ func (r *RBAC) AddRole(roleID, resource string, permissions ...string) error {
 	}
 	// here role exists, add grants
 	role.Grants = append(role.Grants, Grant{
-		Resource:    resource,
+		Resource:    *resource,
 		Permissions: permissions,
 	})
 	return fmt.Errorf("role %s already exists", roleID)
@@ -58,7 +76,7 @@ func (r *RBAC) RoleExists(roleID string) bool {
 	return false
 }
 
-func (r *RBAC) IsAllowed(roleID, resource, action string) bool {
+func (r *RBAC) IsAllowed(roleID, resourceID, action string) bool {
 	role, err := r.GetRole(roleID)
 	if err != nil {
 		return false
@@ -66,7 +84,7 @@ func (r *RBAC) IsAllowed(roleID, resource, action string) bool {
 
 	for _, grant := range role.Grants {
 
-		if grant.Resource == resource {
+		if grant.Resource.ID == resourceID {
 			// search for the action
 			for _, p := range grant.Permissions {
 				// if a permission is *, return true
