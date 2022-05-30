@@ -18,7 +18,7 @@ type RBAConfigs struct {
 type Resource struct {
 	ID    string         `json:"id"`
 	Regex string         `json:"regex"`
-	Rgx   *regexp.Regexp `json:"rgx,omitempty"`
+	Rgx   *regexp.Regexp `json:"-"`
 }
 
 type Role struct {
