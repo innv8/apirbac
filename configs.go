@@ -3,12 +3,13 @@ package apirbac
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 	"regexp"
 )
 
 func (r *RBAC) LoadConfigs(fileName string) error {
 	var configs RBAConfigs
-	fileContents, err := ioutil.ReadFile(fileName)
+	fileContents, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
@@ -19,7 +20,7 @@ func (r *RBAC) LoadConfigs(fileName string) error {
 	}
 
 	for _, role := range configs.Roles {
-		for _, grant := role.Grants {
+		for _, grant := range role.Grants {
 			grant.Resource.Rgx = regexp.MustCompile(grant.Resource.Regex)
 		}
 	}
@@ -31,7 +32,7 @@ func (r *RBAC) LoadConfigs(fileName string) error {
 
 func (r *RBAC) SaveConfigs(fileName string) error {
 	configBytes, _ := json.Marshal(r.Configs)
-	err := ioutil.WriteFile(fileName, configBytes, 0644)
+	err := ioutil.WriteFile(fileName, configBytes, 0600)
 	if err != nil {
 		return err
 	}
