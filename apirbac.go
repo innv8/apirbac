@@ -30,7 +30,7 @@ func (r *RBAC) GetResource(resourceID string) (*Resource, error) {
 	}
 	return nil, fmt.Errorf("resource not found")
 }
-func (r *RBAC) AddRole(roleID, resourceID string, permissions ...string) error {
+func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) error {
 	resource, err := r.GetResource(resourceID)
 	if err != nil {
 		return err
@@ -83,7 +83,6 @@ func (r *RBAC) IsAllowed(roleID, resourceID, action string) bool {
 	}
 
 	for _, grant := range role.Grants {
-
 		if grant.Resource.ID == resourceID {
 			// search for the action
 			for _, p := range grant.Permissions {
