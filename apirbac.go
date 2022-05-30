@@ -83,26 +83,34 @@ func (r *RBAC) RoleExists(roleID string) bool {
 	return false
 }
 
-func (r *RBAC) IsAllowed(roleID, resourceID, action string) bool {
+func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
 	role, _, err := r.GetRole(roleID)
 	if err != nil {
 		return false
 	}
 
-	for _, grant := range role.Grants {
-		if grant.Resource.ID == resourceID {
-			// search for the action
-			for _, p := range grant.Permissions {
-				// if a permission is *, return true
-				if p == "*" {
-					return true
-				}
+	grant, err := getResourceFromValue(resourceValue, role)
+	if err != nil {
+		return false
+	}
 
-				if matched, _ := regexp.MatchString(p, action); matched {
-					return true
-				}
-			}
+	for _, permission := range grant.Permissions {
+		if permission == "*" {
+			return true
+		}
+
+		if permission == action {
+			return true
 		}
 	}
 	return false
+}
+
+func getResourceFromValue(val string, role Role) (Grant, error) {
+	for _, g := range role.Grants {
+		if g.Resource.Rgx.MatchString(val) {
+			return g, nil
+		}
+	}
+	return Grant{}, fmt.Errorf("resource not found")
 }
