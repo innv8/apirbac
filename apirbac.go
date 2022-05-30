@@ -17,7 +17,6 @@ func (r *RBAC) AddResource(resourceID, regex string) {
 	resource := Resource{
 		ID:    resourceID,
 		Regex: regex,
-		Rgx:   regexp.MustCompile(regex),
 	}
 	r.Configs.Resources = append(r.Configs.Resources, resource)
 }
