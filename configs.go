@@ -21,7 +21,10 @@ func (r *RBAC) LoadConfigs(fileName string) error {
 
 	for _, role := range configs.Roles {
 		for _, grant := range role.Grants {
-			grant.Resource.Rgx = regexp.MustCompile(grant.Resource.Regex)
+			grant.Resource.Rgx, err = regexp.Compile(grant.Resource.Regex)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
