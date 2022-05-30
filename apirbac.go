@@ -64,9 +64,15 @@ func (r *RBAC) Allowed(roleID, resource, action string) bool {
 	}
 
 	for _, grant := range role.Grants {
+
 		if grant.Resource == resource {
 			// search for the action
 			for _, p := range grant.Permissions {
+				// if a permission is *, return true
+				if p == "*" {
+					return true
+				}
+
 				if p == action {
 					return true
 				}
