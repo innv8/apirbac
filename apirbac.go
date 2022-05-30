@@ -50,7 +50,14 @@ func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) e
 		})
 		return nil
 	}
-	// here role exists, add grants
+	// here role exists, check if the resource already exists
+	for _, grant := range role.Grants {
+		if grant.Resource.ID == resourceID {
+			return fmt.Errorf("role %s already has resource %s", roleID, resourceID)
+		}
+	}
+
+	// add grants
 	r.Configs.Roles[roleIndex].Grants = append(role.Grants, Grant{
 		Resource:    resource,
 		Permissions: permissions,
