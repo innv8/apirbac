@@ -109,7 +109,7 @@ func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
 
 func getResourceFromValue(val string, role Role) (Grant, error) {
 	for _, g := range role.Grants {
-		log.Println("---------------------", g.Resource.Regex)
+		log.Println("--------------------", g.Resource.Regex)
 		log.Println("---------------------", g.Resource.Rgx == nil)
 
 		match := g.Resource.Rgx.MatchString(val)
