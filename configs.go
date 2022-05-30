@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"regexp"
 )
 
 func (r *RBAC) LoadConfigs(fileName string) error {
@@ -17,16 +16,6 @@ func (r *RBAC) LoadConfigs(fileName string) error {
 	err = json.Unmarshal(fileContents, &configs)
 	if err != nil {
 		return err
-	}
-
-	for _, role := range configs.Roles {
-		for _, grant := range role.Grants {
-			rgx, err := regexp.Compile(grant.Resource.Regex)
-			if err != nil {
-				return err
-			}
-			grant.Resource.Rgx = rgx
-		}
 	}
 
 	r.Configs = configs

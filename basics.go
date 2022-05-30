@@ -1,7 +1,5 @@
 package apirbac
 
-import "regexp"
-
 type Action string
 
 type RBAC struct {
@@ -16,9 +14,8 @@ type RBAConfigs struct {
 }
 
 type Resource struct {
-	ID    string         `json:"id"`
-	Regex string         `json:"regex"`
-	Rgx   *regexp.Regexp `json:"-"`
+	ID    string `json:"id"`
+	Regex string `json:"regex"`
 }
 
 type Role struct {
