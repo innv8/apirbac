@@ -3,18 +3,28 @@ package apirbac
 import (
 	"encoding/json"
 	"io/ioutil"
+	"regexp"
 )
 
 func (r *RBAC) LoadConfigs(fileName string) error {
+	var configs RBAConfigs
 	fileContents, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(fileContents, r)
+	err = json.Unmarshal(fileContents, &configs)
 	if err != nil {
 		return err
 	}
+
+	for _, role := range configs.Roles {
+		for _, grant := role.Grants {
+			grant.Resource.Rgx = regexp.MustCompile(grant.Resource.Regex)
+		}
+	}
+
+	r.Configs = configs
 
 	return nil
 }
