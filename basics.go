@@ -9,7 +9,7 @@ type RBAC struct {
 type RBAConfigs struct {
 	// these describe json fields
 	Actions   []string `json:"actions"`
-	Resources []string `json:"resources"`
+	Resources []string `json:"resources"` // v0.1.3 - use regexes in place of resources
 	Roles     []Role   `json:"roles"`
 }
 

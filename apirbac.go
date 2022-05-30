@@ -2,6 +2,7 @@ package apirbac
 
 import (
 	"fmt"
+	"regexp"
 )
 
 func Init() *RBAC {
@@ -57,7 +58,7 @@ func (r *RBAC) RoleExists(roleID string) bool {
 	return false
 }
 
-func (r *RBAC) Allowed(roleID, resource, action string) bool {
+func (r *RBAC) IsAllowed(roleID, resource, action string) bool {
 	role, err := r.GetRole(roleID)
 	if err != nil {
 		return false
@@ -73,7 +74,7 @@ func (r *RBAC) Allowed(roleID, resource, action string) bool {
 					return true
 				}
 
-				if p == action {
+				if matched, _ := regexp.MatchString(p, action); matched {
 					return true
 				}
 			}
