@@ -22,13 +22,13 @@ func (r *RBAC) AddResource(resourceID, regex string) {
 	r.Configs.Resources = append(r.Configs.Resources, resource)
 }
 
-func (r *RBAC) GetResource(resourceID string) (*Resource, error) {
+func (r *RBAC) GetResource(resourceID string) (Resource, error) {
 	for _, resource := range r.Configs.Resources {
 		if resource.ID == resourceID {
-			return &resource, nil
+			return resource, nil
 		}
 	}
-	return nil, fmt.Errorf("resource not found")
+	return Resource{}, fmt.Errorf("resource not found")
 }
 func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) error {
 	resource, err := r.GetResource(resourceID)
@@ -36,14 +36,14 @@ func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) e
 		return err
 	}
 
-	role, err := r.GetRole(roleID)
+	role, roleIndex, err := r.GetRole(roleID)
 	if err != nil {
 		// here the role does not exist, create it
 		r.Configs.Roles = append(r.Configs.Roles, Role{
 			ID: roleID,
 			Grants: []Grant{
 				{
-					Resource:    *resource,
+					Resource:    resource,
 					Permissions: permissions,
 				},
 			},
@@ -51,20 +51,20 @@ func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) e
 		return nil
 	}
 	// here role exists, add grants
-	role.Grants = append(role.Grants, Grant{
-		Resource:    *resource,
+	r.Configs.Roles[roleIndex].Grants = append(role.Grants, Grant{
+		Resource:    resource,
 		Permissions: permissions,
 	})
-	return fmt.Errorf("role %s already exists", roleID)
+	return nil
 }
 
-func (r *RBAC) GetRole(roleID string) (role *Role, err error) {
-	for _, _r := range r.Configs.Roles {
+func (r *RBAC) GetRole(roleID string) (Role, int, error) {
+	for i, _r := range r.Configs.Roles {
 		if _r.ID == roleID {
-			return &_r, nil
+			return _r, i, nil
 		}
 	}
-	return nil, fmt.Errorf("role %s not found", roleID)
+	return Role{}, 0, fmt.Errorf("role %s not found", roleID)
 }
 
 func (r *RBAC) RoleExists(roleID string) bool {
@@ -77,7 +77,7 @@ func (r *RBAC) RoleExists(roleID string) bool {
 }
 
 func (r *RBAC) IsAllowed(roleID, resourceID, action string) bool {
-	role, err := r.GetRole(roleID)
+	role, _, err := r.GetRole(roleID)
 	if err != nil {
 		return false
 	}
