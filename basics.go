@@ -1,9 +1,10 @@
 package apirbac
 
-type Action string
+type Cache map[string]bool
 
 type RBAC struct {
-	Configs RBAConfigs
+	Configs         RBAConfigs
+	PermissionCache Cache
 }
 
 type RBAConfigs struct {

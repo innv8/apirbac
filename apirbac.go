@@ -83,6 +83,14 @@ func (r *RBAC) RoleExists(roleID string) bool {
 }
 
 func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
+	// try to get from cache first
+	var cacheKey = fmt.Sprintf("%s_%s_%s", roleID, resourceValue, action)
+	allowed, exists := r.PermissionCache[cacheKey]
+	if exists {
+		return allowed
+	}
+
+	// here it is not in cache
 	role, _, err := r.GetRole(roleID)
 	if err != nil {
 		return false
@@ -95,14 +103,21 @@ func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
 
 	for _, permission := range grant.Permissions {
 		if permission == "*" {
-			return true
+			allowed = true
+			break
 		}
 
 		if permission == action {
-			return true
+			allowed = true
+			break
 		}
 	}
+	r.saveToCache(cacheKey, allowed)
 	return false
+}
+
+func (r *RBAC) saveToCache(key string, value bool) {
+	r.PermissionCache[key] = value
 }
 
 func getResourceFromValue(val string, role Role) (Grant, error) {
