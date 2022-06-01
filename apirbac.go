@@ -93,13 +93,12 @@ func (r *RBAC) GetRole(roleID string) (Role, int, error) {
 
 // IsAllowed returns true if a role is allowed to perform an action on a resource
 func (r *RBAC) IsAllowed(roleID, resourceValue string, action string) bool {
-	// here it is not in cache
 	role, _, err := r.GetRole(roleID)
 	if err != nil {
 		return false
 	}
 
-	grant, err := getResourceFromValue(resourceValue, role)
+	grant, err := r.getResourceFromValue(resourceValue, role)
 	if err != nil {
 		return false
 	}
@@ -118,9 +117,10 @@ func (r *RBAC) IsAllowed(roleID, resourceValue string, action string) bool {
 
 // getResourceFromValue returns the resource value when given a resourceID
 // this is where the resource value is compared against stored resource regexes.
-func getResourceFromValue(val string, role Role) (Grant, error) {
+func (r *RBAC) getResourceFromValue(val string, role Role) (Grant, error) {
 	for _, g := range role.Grants {
-		match, _ := regexp.MatchString(g.Resource.Regex, val)
+		resource, _ := r.GetResource(g.ResourceID)
+		match, _ := regexp.MatchString(resource.Regex, val)
 		if match {
 			return g, nil
 		}
