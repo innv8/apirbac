@@ -13,7 +13,11 @@ apirbac depends on these terms:
 There are two ways of using this package:
 
 1. Defining rules in code
+
 2. Loading rules from a JSON config.
+
+---
+
 
 1. Defining rules in code:
 
