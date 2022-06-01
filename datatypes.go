@@ -35,9 +35,9 @@ type Role struct {
 }
 
 // Grant is an array that describes the permissions on a resource that a role has.
-// It has the Resource and an array of permissions (which are actions).
+// It has the Resource ID and an array of permissions (which are actions).
 // If a role has all permissions on a Resource, you can put just '*' in the Actions.
 type Grant struct {
-	Resource Resource `json:"resource"`
-	Actions  []string `json:"actions"`
+	ResourceID string   `json:"resource"`
+	Actions    []string `json:"actions"`
 }

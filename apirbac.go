@@ -47,7 +47,7 @@ func (r *RBAC) GetResource(resourceID string) (Resource, error) {
 // Add all actions for a resource to a role in one line. If a resource is added twice, it will be rejected.
 // If you want to add permissions for the same role but for different resources, do it in two calls.
 func (r *RBAC) AddPermission(roleID, resourceID string, actions ...string) error {
-	resource, err := r.GetResource(resourceID)
+	_, err := r.GetResource(resourceID)
 	if err != nil {
 		return err
 	}
@@ -59,8 +59,8 @@ func (r *RBAC) AddPermission(roleID, resourceID string, actions ...string) error
 			ID: roleID,
 			Grants: []Grant{
 				{
-					Resource: resource,
-					Actions:  actions,
+					ResourceID: resourceID,
+					Actions:    actions,
 				},
 			},
 		})
@@ -68,15 +68,15 @@ func (r *RBAC) AddPermission(roleID, resourceID string, actions ...string) error
 	}
 	// here role exists, check if the resource already exists
 	for _, grant := range role.Grants {
-		if grant.Resource.ID == resourceID {
+		if grant.ResourceID == resourceID {
 			return fmt.Errorf("role %s already has resource %s", roleID, resourceID)
 		}
 	}
 
 	// add grants
 	r.Configs.Roles[roleIndex].Grants = append(role.Grants, Grant{
-		Resource: resource,
-		Actions:  actions,
+		ResourceID: resourceID,
+		Actions:    actions,
 	})
 	return nil
 }
