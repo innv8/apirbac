@@ -127,13 +127,3 @@ func (r *RBAC) getResourceFromValue(val string, role Role) (Grant, error) {
 	}
 	return Grant{}, fmt.Errorf("resource not found")
 }
-
-// roleExists returns true if a roleID is registered and false otherwise
-func (r *RBAC) roleExists(roleID string) bool {
-	for _, role := range r.Configs.Roles {
-		if role.ID == roleID {
-			return true
-		}
-	}
-	return false
-}
