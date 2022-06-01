@@ -9,7 +9,7 @@ Documentation is available within the code and [here](https://pkg.go.dev/github.
 
 ## Reporting issues
 
-Report issues [here]https://github.com/innv8/apirbac/issues/new
+Report issues [here](https://github.com/innv8/apirbac/issues/new)
 
 If you can fix the issue yourself, you can fork the project, checkout to the `dev` branch and then make a pull request.
 
