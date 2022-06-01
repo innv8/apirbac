@@ -1,4 +1,5 @@
 /*
+
 Package apirbac is a role based access control library.
 It is meant to be used specifically in APIs
 
