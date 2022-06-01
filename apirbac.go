@@ -5,14 +5,24 @@ import (
 	"regexp"
 )
 
+// Init function returns a pointer to RBAC.
+// By returning a pointer, it ensures that you only have one instance of rbac configs
+// in your application.
 func Init() *RBAC {
 	return &RBAC{}
 }
 
+// AddActions adds a new action.
+// in a REST API, an action is like GET, POST, PUT etc or one of CRUD.
 func (r *RBAC) AddActions(actions ...string) {
 	r.Configs.Actions = append(r.Configs.Actions, actions...)
 }
 
+//AddResource adds a new resource.
+// In a REST API, a resource can be an endpoint or a table etc.
+// resourceID is the unique name of the resource
+// e.g. an endpoint /users/4 can have a resourceID user
+// and the regex can be /users/[0-9]+
 func (r *RBAC) AddResource(resourceID, regex string) {
 	resource := Resource{
 		ID:    resourceID,
@@ -21,6 +31,8 @@ func (r *RBAC) AddResource(resourceID, regex string) {
 	r.Configs.Resources = append(r.Configs.Resources, resource)
 }
 
+// GetResource returns a resource or an error when the resource is not registered.
+// it can be used in situations where you want to confirm if a resource is registered.
 func (r *RBAC) GetResource(resourceID string) (Resource, error) {
 	for _, resource := range r.Configs.Resources {
 		if resource.ID == resourceID {
@@ -29,7 +41,12 @@ func (r *RBAC) GetResource(resourceID string) (Resource, error) {
 	}
 	return Resource{}, fmt.Errorf("resource not found")
 }
-func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) error {
+
+// AddPermission adds a role and their permitted actions to a resource.
+// if the role should have all permissions on a resource, use "*" as the action.
+// Add all actions for a resource to a role in one line. If a resource is added twice, it will be rejected.
+// If you want to add permissions for the same role but for different resources, do it in two calls.
+func (r *RBAC) AddPermission(roleID, resourceID string, actions ...string) error {
 	resource, err := r.GetResource(resourceID)
 	if err != nil {
 		return err
@@ -42,8 +59,8 @@ func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) e
 			ID: roleID,
 			Grants: []Grant{
 				{
-					Resource:    resource,
-					Permissions: permissions,
+					Resource: resource,
+					Actions:  actions,
 				},
 			},
 		})
@@ -58,12 +75,13 @@ func (r *RBAC) AddPermission(roleID, resourceID string, permissions ...string) e
 
 	// add grants
 	r.Configs.Roles[roleIndex].Grants = append(role.Grants, Grant{
-		Resource:    resource,
-		Permissions: permissions,
+		Resource: resource,
+		Actions:  actions,
 	})
 	return nil
 }
 
+// GetRole returns a role or an error if it is not registered.
 func (r *RBAC) GetRole(roleID string) (Role, int, error) {
 	for i, _r := range r.Configs.Roles {
 		if _r.ID == roleID {
@@ -73,23 +91,8 @@ func (r *RBAC) GetRole(roleID string) (Role, int, error) {
 	return Role{}, 0, fmt.Errorf("role %s not found", roleID)
 }
 
-func (r *RBAC) RoleExists(roleID string) bool {
-	for _, role := range r.Configs.Roles {
-		if role.ID == roleID {
-			return true
-		}
-	}
-	return false
-}
-
-func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
-	// try to get from cache first
-	var cacheKey = fmt.Sprintf("%s_%s_%s", roleID, resourceValue, action)
-	allowed, exists := r.PermissionCache[cacheKey]
-	if exists {
-		return allowed
-	}
-
+// IsAllowed returns true if a role is allowed to perform an action on a resource
+func (r *RBAC) IsAllowed(roleID, resourceValue string, action string) bool {
 	// here it is not in cache
 	role, _, err := r.GetRole(roleID)
 	if err != nil {
@@ -101,25 +104,20 @@ func (r *RBAC) IsAllowed(roleID, resourceValue, action string) bool {
 		return false
 	}
 
-	for _, permission := range grant.Permissions {
+	for _, permission := range grant.Actions {
 		if permission == "*" {
-			allowed = true
-			break
+			return true
 		}
 
 		if permission == action {
-			allowed = true
-			break
+			return true
 		}
 	}
-	r.saveToCache(cacheKey, allowed)
 	return false
 }
 
-func (r *RBAC) saveToCache(key string, value bool) {
-	r.PermissionCache[key] = value
-}
-
+// getResourceFromValue returns the resource value when given a resourceID
+// this is where the resource value is compared against stored resource regexes.
 func getResourceFromValue(val string, role Role) (Grant, error) {
 	for _, g := range role.Grants {
 		match, _ := regexp.MatchString(g.Resource.Regex, val)
@@ -128,4 +126,14 @@ func getResourceFromValue(val string, role Role) (Grant, error) {
 		}
 	}
 	return Grant{}, fmt.Errorf("resource not found")
+}
+
+// roleExists returns true if a roleID is registered and false otherwise
+func (r *RBAC) roleExists(roleID string) bool {
+	for _, role := range r.Configs.Roles {
+		if role.ID == roleID {
+			return true
+		}
+	}
+	return false
 }

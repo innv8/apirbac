@@ -6,8 +6,10 @@ import (
 	"os"
 )
 
+// LoadConfigs loads configs from a json file.
+// if the file is invalid, it returns an error.
 func (r *RBAC) LoadConfigs(fileName string) error {
-	var configs RBAConfigs
+	var configs RBACConfigs
 	fileContents, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -23,6 +25,7 @@ func (r *RBAC) LoadConfigs(fileName string) error {
 	return nil
 }
 
+// SaveConfigs saves the configs to a json file for persistence/ export
 func (r *RBAC) SaveConfigs(fileName string) error {
 	configBytes, _ := json.Marshal(r.Configs)
 	err := ioutil.WriteFile(fileName, configBytes, 0600)
